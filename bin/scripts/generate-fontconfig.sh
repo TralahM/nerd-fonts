@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Nerd Fonts Version: 2.1.0
-# Script Version: 1.0.0
+# Nerd Fonts Version: 3.5.1
+# Script Version: 1.0.2
 # Iterates over all patched fonts directories
 # to generate a fontconfig based on the Nerd Fonts Symbols font
 # that contains only the glyphs
 
 #set -x
 
-parent_dir="${PWD}/../../"
+parent_dir="$(pwd)/../../"
 unpatched_parent_dir="../../src/unpatched-fonts/"
 to="$parent_dir/10-nerd-font-symbols.conf"
 symbolfont="Symbols Nerd Font"
@@ -41,7 +41,7 @@ echo "$LINE_PREFIX Generating fontconfig for: monospace"
 } >> "$to"
 
 #find ./Hack -maxdepth 0 -type d | # uncomment to test 1 font
-find . -maxdepth 1 -type d | # uncomment to get all fonts
+find . -mindepth 1 -maxdepth 1 -type d | LC_ALL=C sort | # uncomment to get all fonts
 while read -r filename
 do
 
@@ -51,16 +51,23 @@ do
 	while IFS= read -d $'\0' -r file ; do
 	  FONTS=("${FONTS[@]}" "$file")
 	# limit to first variation of family (folder)
-  done < <(find "$searchdir" -type f -iname '*.[o,t]tf' -print0)
+  done < <(find "$searchdir" -type f -iname '*.[ot]tf' -print0 | LC_ALL=C sort -z)
   #done
 
   for font in "${FONTS[@]}"; do
     familyname=$(fc-query --format='%{family}' "${font}")
-    if [[ ! "${families[*]}" == *"${familyname}"* ]]; then
+    found=0
+    for e in "${families[@]}"; do
+      if [ "$e" = "$familyname" ]; then
+        found=1
+        break
+      fi
+    done
+    if [ $found -eq 0 ]; then
       # family array doesn't contain the font yet
       # so let's add it
       families+=("$familyname")
-      echo "adding $familyname";
+      # echo "adding $familyname";
 
       echo "$LINE_PREFIX Generating fontconfig for: $familyname"
 
@@ -72,8 +79,8 @@ do
         printf '\n  </alias>'
       } >> "$to"
 
-    else
-      echo "no need to add $familyname";
+    # else
+      # echo "no need to add $familyname";
     fi
   done
 

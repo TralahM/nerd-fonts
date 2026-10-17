@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Nerd Fonts Version: 2.1.0
+# Nerd Fonts Version: 3.5.1
 # calls the necessary scripts in the necessary order to prepare for a release
+#
+# This is not used for production
 
 #set -x
 LINE_PREFIX="# [Nerd Fonts] "
@@ -13,12 +15,14 @@ fi
 release=$1
 
 ./version-bump.sh "$release"
-./standardize-and-complete-readmes.sh
+./generate-css.sh
 ./gotta-patch-em-all-font-patcher!.sh
 ./generate-fontconfig.sh
 ./generate-casks.sh
 ./archive-fonts.sh
-#./upload-archives.sh # better done as a separate step
+#./upload-archives.sh # better done as a separate step (via gh action)
+./archive-font-patcher.sh
+./generate-webfonts.sh
 
 exit
 

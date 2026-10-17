@@ -5,14 +5,17 @@ _Please explain the changes you made here._
 
 #### Requirements / Checklist
 
-- [ ] Read the [Contributing Guidelines](https://github.com/ryanoasis/nerd-fonts/blob/master/contributing.md)
-- [ ] Read or at least glanced at the [FAQ](https://github.com/ryanoasis/nerd-fonts/wiki/FAQ-and-Troubleshooting)
-- [ ] Read or at least glanced at the [Wiki](https://github.com/ryanoasis/nerd-fonts/wiki)
-- [ ] Scripts execute without error (if necessary):
-  - If any of the scripts were modified they have been tested and execute without error, e.g.:
-    - `./font-patcher Inconsolata.otf --fontawesome --octicons --pomicons`
-    - `./gotta-patch-em-all-font-patcher\!.sh Hermit`
-- [ ] Extended the README and documentation if necessary, e.g. You added a new font please update the table
+- [ ] Read the [Contributing Guidelines](https://github.com/ryanoasis/nerd-fonts/blob/-/contributing.md)
+- [ ] I've discussed this with core contributors already. If not checked, I'm ready to accept this work might be rejected in favor of a different grand plan.
+      Issue number where discussion took place: #xxx
+- [ ] If this contains a font/glyph add its origin as background info below (e.g. URL)
+- [ ] Verified the license of any newly added font, glyph, or glyph set. License is: xxx
+
+----
+
+- [ ] I did not use AI/LLM to create this PR, or
+- [ ] I disclosed the tool/model below and reviewed its output. I did not attribute commits to AI and will answer maintainer questions and review comments myself without AI/LLM. Or
+- [ ] I am an AI/LLM agent
 
 #### What does this Pull Request (PR) do?
 

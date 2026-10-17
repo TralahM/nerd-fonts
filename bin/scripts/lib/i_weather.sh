@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Weather Icons (228 icons)
-# Codepoints: F000, F0EB, Nerd Fonts moved E300-E3EB
-# Nerd Fonts Version: 2.1.0
+# Weather Icons 1.100 (228 icons)
+# Codepoints: F000-F0EB (with holes), Nerd Fonts moved E300-E3E3
+# Nerd Fonts Version: 3.5.1
 # Script Version 1.0.2
 test -n "$__i_weather_loaded" && return || __i_weather_loaded=1
 i='' i_weather_day_cloudy_gusts=$i
@@ -42,7 +42,7 @@ i='' i_weather_night_alt_lightning=$i
 i='' i_weather_night_alt_rain_mix=$i
 i='' i_weather_night_alt_rain_wind=$i
 i='' i_weather_night_alt_rain=$i
-i='' i_weather_night_alt_rain_mix=$i
+i='' i_weather_night_alt_showers=$i
 i='' i_weather_night_alt_snow=$i
 i='' i_weather_night_alt_sprinkle=$i
 i='' i_weather_night_alt_storm_showers=$i

@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# Nerd Fonts Version: 2.1.0
-# Script Version: 1.0.0
+# Nerd Fonts Version: 3.5.1
+# Script Version: 1.1.1
+
+# Run this script in your local bash:
+# curl https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/bin/scripts/test-fonts.sh | bash
+# Is possible to change the number of columns passing a number as the first parameter (default=16):
+# ./test-fonts.sh 8
 
 # Given an array of decimal numbers print all unicode codepoint.
 function print-decimal-unicode-range() {
@@ -19,40 +24,54 @@ function print-decimal-unicode-range() {
   local reset_color='\033[0m'
   local allChars=""
   local allCodes=""
-  local wrapAt=5
-  local topLine="${bgColorBorder}╔══════╦══════╦══════╦══════╦══════╗${reset_color}"
-  local bottomLine="${bgColorBorder}╚══════╩══════╩══════╩══════╩══════╝${reset_color}"
-  local line="${bgColorBorder}╠══════╬══════╬══════╬══════╬══════╣${reset_color}"
+  local wrapAt=16
+  [[ "$wrappingValue" =~ ^[0-9]+$ ]] && [ "$wrappingValue" -gt 2 ] && wrapAt="$wrappingValue"
+  local topLineStart="${bgColorBorder}╔═══"
+  local topLineMiddle="═══╦═══"
+  local topLineEnd="═══╗${reset_color}"
+  local bottomLineStart="${bgColorBorder}╚═══"
+  local bottomLineMiddle="═══╩═══"
+  local bottomLineEnd="═══╝${reset_color}"
+  local lineStart="${bgColorBorder}╠═══"
+  local lineMiddle="═══╬═══"
+  local lineEnd="═══╣${reset_color}"
   local bar="${bgColorBorder}║${reset_color}"
   local originalSequenceLength=${#originalSequence[@]}
   local leftoverSpaces=$((wrapAt - (originalSequenceLength % wrapAt)))
 
   # add fillers to array to maintain table:
-  if [[ "$leftoverSpaces" < "$wrapAt" ]]; then
-    # shellcheck disable=SC2034
-    # needs rework without 'i' var?
-    for i in $(seq 1 $leftoverSpaces); do
+  if [ "$leftoverSpaces" -lt "$wrapAt" ]; then
+    for ((c = 1; c <= leftoverSpaces; c++)); do
       originalSequence+=(0)
     done
   fi
 
   local sequenceLength=${#originalSequence[@]}
 
-  printf "%b\\n" "$topLine"
+  printf "%b" "$topLineStart"
+  for ((c = 2; c <= wrapAt; c++)); do
+    printf "%b" "$topLineMiddle"
+  done
+  printf "%b\\n" "$topLineEnd"
 
   for decimalCode in "${originalSequence[@]}"; do
     local hexCode
     hexCode=$(printf '%x' "${decimalCode}")
     local code="${hexCode}"
-    local char="\\u${hexCode}"
+    local char="\\U${hexCode}"
 
     # fill in placeholder cells properly formatted:
-    if [ "${char}" = "\\u0" ]; then
+    if [ "${char}" = "\\U0" ]; then
       char=" "
-      code="    "
+      code=""
     fi
 
-    allCodes+="${currentColorCode} ${underline}${code}${reset_color}${currentColorCode} ${reset_color}$bar"
+    filler=""
+    for ((c = ${#code}; c < 5; c++)); do
+      filler=" ${filler}"
+    done
+
+    allCodes+="${currentColorCode}${filler}${underline}${code}${reset_color}${currentColorCode} ${reset_color}$bar"
     allChars+="${currentColorChar}  ${char}   ${reset_color}$bar"
     counter=$((counter + 1))
     count=$(( (count + 1) % wrapAt))
@@ -73,7 +92,11 @@ function print-decimal-unicode-range() {
       printf "\\n"
 
       if [ "$counter" != "$sequenceLength" ]; then
-        printf "%b\\n" "$line"
+        printf "%b" "$lineStart"
+        for ((c = 2; c <= wrapAt; c++)); do
+          printf "%b" "$lineMiddle"
+        done
+        printf "%b\\n" "$lineEnd"
       fi
 
       allCodes=""
@@ -82,7 +105,12 @@ function print-decimal-unicode-range() {
 
   done
 
-  printf "%b\\n" "$bottomLine"
+  printf "%b" "$bottomLineStart"
+  for ((c = 2; c <= wrapAt; c++)); do
+    printf "%b" "$bottomLineMiddle"
+  done
+  printf "%b\\n" "$bottomLineEnd"
+
 
 }
 
@@ -99,7 +127,8 @@ function print-unicode-ranges() {
     local startDecimal=$((16#$start))
     local endDecimal=$((16#$end))
 
-    mapfile -t combinedRanges < <(seq "$startDecimal" "$endDecimal")
+    # shellcheck disable=SC2207 # We DO WANT the output to be split
+    combinedRanges+=($(seq "$startDecimal" "$endDecimal"))
 
   done
 
@@ -109,7 +138,7 @@ function print-unicode-ranges() {
 
 function test-fonts() {
   echo "Nerd Fonts - Pomicons"
-  print-unicode-ranges e000 e00d
+  print-unicode-ranges e000 e00a
   echo; echo
 
   echo "Nerd Fonts - Powerline"
@@ -117,11 +146,11 @@ function test-fonts() {
   echo; echo
 
   echo "Nerd Fonts - Powerline Extra"
-  print-unicode-ranges e0a3 e0a3 e0b4 e0c8 e0cc e0d2 e0d4 e0d4
+  print-unicode-ranges e0a3 e0a3 e0b4 e0c8 e0cc e0d2 e0d4 e0d4 e0d6 e0d7
   echo; echo
 
   echo "Nerd Fonts - Symbols original"
-  print-unicode-ranges e5fa e62b
+  print-unicode-ranges e5fa e6b2
   echo; echo
 
   echo "Nerd Fonts - Devicons"
@@ -140,26 +169,23 @@ function test-fonts() {
   print-unicode-ranges f400 f4a8 2665 2665 26A1 26A1 f27c f27c
   echo; echo
 
-  echo "Nerd Fonts - Font Linux"
-  print-unicode-ranges f300 f313
+  echo "Nerd Fonts - Font Logos"
+  print-unicode-ranges f300 f372
   echo; echo
 
   echo "Nerd Fonts - Font Power Symbols"
   print-unicode-ranges 23fb 23fe 2b58 2b58
   echo; echo
 
-  echo "Nerd Fonts - Material Design Icons"
-  print-unicode-ranges f500 fd46
+  echo "Nerd Fonts - Material Design Icons (first few)"
+  print-unicode-ranges f0001 f0010
   echo; echo
 
   echo "Nerd Fonts - Weather Icons"
   print-unicode-ranges e300 e3eb
   echo; echo
-
-  echo "Nerd Fonts - All"
-  print-unicode-ranges e000 e00d e0a0 e0a2 e0b0 e0b3 e0a3 e0a3 e0b4 e0c8 e0cc e0d2 e0d4 e0d4 e5fa e62b e700 e7c5 f000 f2e0 e200 e2a9 f400 f4a8 2665 2665 26A1 26A1 f27c f27c f300 f313 23fb 23fe 2b58 2b58 f500 fd46 e300 e3eb
-
-  echo; echo
 }
+
+wrappingValue="$1"
 
 test-fonts

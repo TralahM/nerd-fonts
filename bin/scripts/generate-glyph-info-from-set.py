@@ -1,41 +1,25 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding=utf8
-# Nerd Fonts Version: 2.1.0
-# Script Version: 1.1.0
+# Nerd Fonts Version: 3.5.1
+# Script Version: 1.4.0
 
 # Example Usage:
 # ./generate-glyph-info-from-set.py --font ../../src/glyphs/materialdesignicons-webfont.ttf --start f001 --end f847 --offset 4ff --prefix mdi
+# ./generate-glyph-info-from-set.py --font ../../src/glyphs/materialdesign/*.ttf --start f0001 --end f1af0 --offset 0 --prefix md
 # ./generate-glyph-info-from-set.py --font ../../src/glyphs/weathericons-regular-webfont.ttf --start f000 --end f0eb --negoffset d00 --prefix weather --nogaps
 
-from __future__ import absolute_import, print_function, unicode_literals
-
-version = "1.0.0"
-projectName = "Nerd Fonts"
-projectNameAbbreviation = "NF"
-projectNameSingular = projectName[:-1]
+version = "3.5.1"
 
 import sys
-
-try:
-    import psMat
-except ImportError:
-    sys.exit(projectName + ": FontForge module is probably not installed. [See: http://designwithfontforge.com/en-US/Installing_Fontforge.html]")
-
 import re
 import os
 import argparse
 from argparse import RawTextHelpFormatter
 import errno
 import subprocess
+import fontforge
 
-try:
-    #Load the module
-    import fontforge
-
-except ImportError:
-    sys.exit(projectName + ": FontForge module could not be loaded. Try installing fontforge python bindings [e.g. on Linux Debian or Ubuntu: `sudo apt install fontforge python-fontforge`]")
-
-parser = argparse.ArgumentParser(description='Nerd Fonts Glyph Info Generator: displays code point and glyph names from given set\n\n* Website: https://www.nerdfonts.com\n* Version: ' + version + '\n* Development Website: https://github.com/ryanoasis/nerd-fonts\n* Changelog: https://github.com/ryanoasis/nerd-fonts/blob/master/changelog.md', formatter_class=RawTextHelpFormatter)
+parser = argparse.ArgumentParser(description='Nerd Fonts Glyph Info Generator: displays code point and glyph names from given set\n\n* Website: https://www.nerdfonts.com\n* Version: ' + version + '\n* Development Website: https://github.com/ryanoasis/nerd-fonts\n* Changelog: https://github.com/ryanoasis/nerd-fonts/blob/-/changelog.md', formatter_class=RawTextHelpFormatter)
 parser.add_argument('-start', '--start', type=str, nargs='?', dest='symbolFontStart', help='The starting unicode hex codepoint')
 parser.add_argument('-end', '--end', type=str, nargs='?', dest='symbolFontEnd', help='The ending unicode hex codepoint')
 parser.add_argument('-offset', '--offset', type=str, nargs='?', dest='symbolOffset', help='The amount (in hex) to offset the range by for the source font')
@@ -45,41 +29,80 @@ parser.add_argument('-nogaps', '--nogaps', action='store_true', dest='nogaps', h
 parser.add_argument('-font', '--font', type=str, nargs='?', dest='filepath', help='The file path to the font file to open')
 args = parser.parse_args()
 
+manual_name_substitudes = {
+        0xF0388: 'music_note_2',
+        0xF043D: 'radiobox_blank',
+        0xF0509: 'mountains',
+        0xF05FC: 'logout_variant_2',
+        0xF0765: 'circle',
+        0xF0766: 'circle_outline',
+        0xF08D0: 'cards_heart',
+        0xF0B39: 'numeric_0',
+        0xF0C9E: 'numeric_0_circle',
+        0xF0C9F: 'numeric_0_circle_outline',
+        0xF1088: 'roman_numeral_1',
+        0xF108C: 'roman_numeral_5',
+        0xF1091: 'roman_numeral_10',
+        0xF13A6: 'size_l',
+        0xF18A0: 'cards_heart_outline',
+        0xF18F0: 'navigation_variant',
+}
+
 print(args.symbolFontStart, args.symbolFontEnd)
 
 symbolFont = fontforge.open(args.filepath)
 
-args.symbolFontStart = int("0x" + args.symbolFontStart, 16)
-args.symbolFontEnd = int("0x" + args.symbolFontEnd, 16)
+args.symbolFontStart = int(args.symbolFontStart, 16)
+args.symbolFontEnd = int(args.symbolFontEnd, 16)
 ctr = 0
 
 if args.negSymbolOffset:
-  args.negSymbolOffset = int("0x" + args.negSymbolOffset, 16)
+  args.negSymbolOffset = int(args.negSymbolOffset, 16)
   sign = '-'
   offset = args.negSymbolOffset
 elif args.symbolOffset:
-  args.symbolOffset = int("0x" + args.symbolOffset, 16)
+  args.symbolOffset = int(args.symbolOffset, 16)
   sign = ''
   offset = args.symbolOffset
 
 signedOffset = int(sign+'0x'+format(offset, 'X'), 16)
 hexPosition = args.symbolFontStart + signedOffset
 
-symbolFont.selection.select((str("ranges"),str("unicode")),args.symbolFontStart,args.symbolFontEnd)
-
-for index, sym_glyph in enumerate(symbolFont.selection.byGlyphs):
-  slot = format(sym_glyph.unicode, 'X')
-  name = sym_glyph.glyphname
-  sh_name = "i_" + args.prefix + "_" + name.replace("-", "_")
+allNames = set()
+suppressedEntries = []
+symbolFont.encoding = 'UnicodeFull'
+for index in range(args.symbolFontStart, args.symbolFontEnd + 1):
+  if not index in symbolFont:
+    continue
+  if index in manual_name_substitudes:
+    code = index
+    name = manual_name_substitudes[index]
+  else:
+    sym_glyph = symbolFont[index]
+    code = sym_glyph.unicode
+    name = sym_glyph.glyphname
+  sh_name = 'i_{}_{}'.format(args.prefix, name.replace('-', '_'))
 
   if args.nogaps:
-    char = unichr(hexPosition)
+    char = chr(hexPosition)
   else:
-    char = unichr(int('0x'+slot, 16) + signedOffset)
+    char = chr(index + signedOffset)
 
-  print("i='" + char + "' " + sh_name + "=$i" + " //" + str(hexPosition))
+  entryString = 'i=\'{}\' {}=$i'.format(char, sh_name)
+
+  if index != code:
+    suppressedEntries.append(entryString + ' ({:X} not main codepoint)'.format(index))
+  elif sh_name not in allNames:
+    print(entryString)
+  else:
+    suppressedEntries.append(entryString + ' (double)')
+
   ctr += 1
   hexPosition += 1
+  allNames.add(sh_name)
 
-print("Done, generated " + str(ctr) + " glyphs")
+print('Done, generated {} glyphs'.format(ctr))
 
+if len(suppressedEntries) > 0:
+  print('FOLLOWING ENTRIES SUPPRESSED to prevent double names:')
+  print('\n'.join(suppressedEntries))

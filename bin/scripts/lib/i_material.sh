@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Material Design Icons (2,119 icons)
-# Codepoints: F001, F847, Nerd Fonts moved F500-FD46
-# Nerd Fonts Version: 2.1.0
+# These icons are not included anymore since Nerd Fonts v3;
+# look into i_md.sh instead. This file is used to create
+# the "removed" cheat sheet entries.
+#
+# Material Design Icons (legacy) (2,119 icons)
+# Codepoints: F001-F847, Nerd Fonts moved F500-FD46
+# Nerd Fonts Version: 3.5.1
 # Script Version 1.0.0
 test -n "$__i_mdi_loaded" && return || __i_mdi_loaded=1
 i='' i_mdi_vector_square=$i
@@ -2123,3 +2127,4 @@ i='﵃' i_mdi_xamarin=$i
 i='﵄' i_mdi_xamarin_outline=$i
 i='﵅' i_mdi_youtube_creator_studio=$i
 i='﵆' i_mdi_youtube_gaming=$i
+unset i

@@ -1,4 +1,9 @@
+# Keep this in line with .github/workflows/docker-release.yml
 **
-!src/glyphs/*.*
+!src/glyphs
 !font-patcher
+!glyphnames.json
+!bin/scripts/name_parser/Fontname*.py
+!bin/scripts/braille/Braille.py
 !bin/scripts/docker-entrypoint.sh
+!.codeclimate.yml
